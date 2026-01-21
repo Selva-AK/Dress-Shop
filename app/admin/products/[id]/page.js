@@ -31,13 +31,22 @@ export default function EditProductPage({ params }) {
             if (res.ok) {
                 const data = await res.json();
                 const product = data.product;
+
+                // Ensure sizes array exists and has proper structure
+                const sizes = product.sizes && product.sizes.length > 0
+                    ? product.sizes.map(s => ({
+                        size: s.size || '',
+                        price: s.price || '',
+                        stock: s.stock || ''
+                    }))
+                    : [{ size: 'S', price: '', stock: '' }]; // Default if no sizes
+
                 setInitialData({
                     title: product.title,
                     slug: product.slug,
                     description: product.description,
-                    price: product.price,
+                    sizes: sizes,
                     compareAtPrice: product.compareAtPrice || '',
-                    stock: product.stock,
                     category: product.category,
                     featured: product.featured,
                     imageUrl: product.images?.[0] || '',

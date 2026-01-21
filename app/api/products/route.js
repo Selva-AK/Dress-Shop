@@ -85,6 +85,30 @@ export async function POST(request) {
 
         const data = await request.json();
 
+        // Validate sizes array
+        if (!data.sizes || !Array.isArray(data.sizes) || data.sizes.length === 0) {
+            return NextResponse.json(
+                { error: 'At least one size variant is required' },
+                { status: 400 }
+            );
+        }
+
+        // Validate each size variant
+        for (const sizeVariant of data.sizes) {
+            if (!sizeVariant.size || !sizeVariant.price || sizeVariant.stock === undefined) {
+                return NextResponse.json(
+                    { error: 'Each size must have size, price, and stock fields' },
+                    { status: 400 }
+                );
+            }
+            if (sizeVariant.price < 0 || sizeVariant.stock < 0) {
+                return NextResponse.json(
+                    { error: 'Price and stock must be non-negative' },
+                    { status: 400 }
+                );
+            }
+        }
+
         await dbConnect();
 
         const product = await Product.create(data);

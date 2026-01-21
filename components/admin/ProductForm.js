@@ -11,9 +11,12 @@ export default function ProductForm({
         title: '',
         slug: '',
         description: '',
-        price: '',
+        sizes: [
+            { size: 'S', price: '', stock: '' },
+            { size: 'M', price: '', stock: '' },
+            { size: 'L', price: '', stock: '' },
+        ],
         compareAtPrice: '',
-        stock: '',
         category: '',
         featured: false,
         imageUrl: '',
@@ -32,17 +35,44 @@ export default function ProductForm({
         }));
     };
 
+    const handleSizeChange = (index, field, value) => {
+        setFormData(prev => ({
+            ...prev,
+            sizes: prev.sizes.map((size, i) =>
+                i === index ? { ...size, [field]: value } : size
+            )
+        }));
+    };
+
+    const addSize = () => {
+        setFormData(prev => ({
+            ...prev,
+            sizes: [...prev.sizes, { size: '', price: '', stock: '' }]
+        }));
+    };
+
+    const removeSize = (index) => {
+        if (formData.sizes.length > 1) {
+            setFormData(prev => ({
+                ...prev,
+                sizes: prev.sizes.filter((_, i) => i !== index)
+            }));
+        }
+    };
+
     const handleSubmit = (e) => {
         e.preventDefault();
 
         const productData = {
             ...formData,
-            price: parseFloat(formData.price),
+            sizes: formData.sizes.map(s => ({
+                size: s.size,
+                price: parseFloat(s.price),
+                stock: parseInt(s.stock)
+            })),
             compareAtPrice: formData.compareAtPrice ? parseFloat(formData.compareAtPrice) : 0,
-            stock: parseInt(formData.stock),
             images: formData.imageUrl ? [formData.imageUrl] : [],
             colors: [],
-            sizes: [],
         };
 
         onSubmit(productData);
@@ -144,74 +174,123 @@ export default function ProductForm({
                         </div>
                     </div>
 
-                    {/* Pricing & Inventory Section */}
+                    {/* Size Variants Section */}
                     <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                         <div className="bg-gradient-to-r from-green-50 to-emerald-50 px-6 py-4 border-b border-slate-200">
                             <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-                                <DollarSign className="w-5 h-5" /> Pricing & Inventory
+                                <Package className="w-5 h-5" /> Size Variants & Pricing
                             </h2>
+                            <p className="text-sm text-slate-600 mt-1">Add sizes with individual pricing and stock levels</p>
                         </div>
                         <div className="p-6">
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                {/* Price */}
-                                <div className="space-y-2">
-                                    <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                                        <IndianRupee className="w-4 h-4" /> Price (₹)
-                                        <span className="text-red-500">*</span>
-                                    </label>
-                                    <div className="relative">
-                                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-bold">₹</span>
-                                        <input
-                                            type="number"
-                                            name="price"
-                                            required
-                                            min="0"
-                                            step="0.01"
-                                            placeholder="0.00"
-                                            className="w-full pl-10 pr-4 py-3 rounded-xl border-2 border-slate-200 bg-slate-50 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
-                                            value={formData.price}
-                                            onChange={handleChange}
-                                        />
+                            <div className="space-y-4">
+                                {formData.sizes.map((sizeVariant, index) => (
+                                    <div key={index} className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-slate-50 rounded-xl border-2 border-slate-200">
+                                        {/* Size */}
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                                                <Tag className="w-4 h-4" /> Size
+                                                <span className="text-red-500">*</span>
+                                            </label>
+                                            <select
+                                                required
+                                                className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                                                value={sizeVariant.size}
+                                                onChange={(e) => handleSizeChange(index, 'size', e.target.value)}
+                                            >
+                                                <option value="">Select...</option>
+                                                <option value="XS">XS</option>
+                                                <option value="S">S</option>
+                                                <option value="M">M</option>
+                                                <option value="L">L</option>
+                                                <option value="XL">XL</option>
+                                                <option value="XXL">XXL</option>
+                                            </select>
+                                        </div>
+
+                                        {/* Price */}
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                                                <IndianRupee className="w-4 h-4" /> Price (₹)
+                                                <span className="text-red-500">*</span>
+                                            </label>
+                                            <div className="relative">
+                                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-bold">₹</span>
+                                                <input
+                                                    type="number"
+                                                    required
+                                                    min="0"
+                                                    step="0.01"
+                                                    placeholder="0.00"
+                                                    className="w-full pl-10 pr-4 py-3 rounded-xl border-2 border-slate-200 bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                                                    value={sizeVariant.price}
+                                                    onChange={(e) => handleSizeChange(index, 'price', e.target.value)}
+                                                />
+                                            </div>
+                                        </div>
+
+                                        {/* Stock */}
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                                                <Package className="w-4 h-4" /> Stock
+                                                <span className="text-red-500">*</span>
+                                            </label>
+                                            <input
+                                                type="number"
+                                                required
+                                                min="0"
+                                                placeholder="0"
+                                                className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                                                value={sizeVariant.stock}
+                                                onChange={(e) => handleSizeChange(index, 'stock', e.target.value)}
+                                            />
+                                        </div>
+
+                                        {/* Remove Button */}
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-semibold text-slate-700 opacity-0">Action</label>
+                                            <button
+                                                type="button"
+                                                onClick={() => removeSize(index)}
+                                                disabled={formData.sizes.length === 1}
+                                                className="w-full px-4 py-3 rounded-xl border-2 border-red-200 bg-red-50 text-red-600 hover:bg-red-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold"
+                                            >
+                                                <X className="w-4 h-4 inline" /> Remove
+                                            </button>
+                                        </div>
                                     </div>
-                                </div>
+                                ))}
+
+                                {/* Add Size Button */}
+                                <button
+                                    type="button"
+                                    onClick={addSize}
+                                    className="w-full px-4 py-3 rounded-xl border-2 border-dashed border-green-300 bg-green-50 text-green-700 hover:bg-green-100 transition-all font-semibold flex items-center justify-center gap-2"
+                                >
+                                    <Package className="w-4 h-4" /> Add Another Size
+                                </button>
 
                                 {/* Compare at Price */}
-                                <div className="space-y-2">
-                                    <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                                        <Tag className="w-4 h-4" /> Compare at Price (₹)
-                                    </label>
-                                    <div className="relative">
-                                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-bold">₹</span>
-                                        <input
-                                            type="number"
-                                            name="compareAtPrice"
-                                            min="0"
-                                            step="0.01"
-                                            placeholder="0.00"
-                                            className="w-full pl-10 pr-4 py-3 rounded-xl border-2 border-slate-200 bg-slate-50 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
-                                            value={formData.compareAtPrice}
-                                            onChange={handleChange}
-                                        />
+                                <div className="pt-4 border-t border-slate-200">
+                                    <div className="space-y-2 max-w-xs">
+                                        <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                                            <Tag className="w-4 h-4" /> Compare at Price (₹)
+                                        </label>
+                                        <div className="relative">
+                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-bold">₹</span>
+                                            <input
+                                                type="number"
+                                                name="compareAtPrice"
+                                                min="0"
+                                                step="0.01"
+                                                placeholder="0.00"
+                                                className="w-full pl-10 pr-4 py-3 rounded-xl border-2 border-slate-200 bg-slate-50 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                                                value={formData.compareAtPrice}
+                                                onChange={handleChange}
+                                            />
+                                        </div>
+                                        <p className="text-xs text-slate-500">Original price for discount display (optional)</p>
                                     </div>
-                                    <p className="text-xs text-slate-500">Original price for discount display</p>
-                                </div>
-
-                                {/* Stock */}
-                                <div className="space-y-2">
-                                    <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                                        <Package className="w-4 h-4" /> Stock Quantity
-                                        <span className="text-red-500">*</span>
-                                    </label>
-                                    <input
-                                        type="number"
-                                        name="stock"
-                                        required
-                                        min="0"
-                                        placeholder="0"
-                                        className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 bg-slate-50 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
-                                        value={formData.stock}
-                                        onChange={handleChange}
-                                    />
                                 </div>
                             </div>
                         </div>

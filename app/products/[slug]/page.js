@@ -45,8 +45,8 @@ export default function ProductDetailPage({ params }) {
                 const productData = data.product;
                 setProduct(productData);
 
-                // Set defaults
-                if (productData.sizes?.length > 0) setSelectedSize(productData.sizes[0]);
+                // Set defaults - sizes are now objects with size, price, stock
+                if (productData.sizes?.length > 0) setSelectedSize(productData.sizes[0].size);
                 if (productData.colors?.length > 0) setSelectedColor(productData.colors[0].name);
 
                 // Fetch related products
@@ -74,10 +74,29 @@ export default function ProductDetailPage({ params }) {
     const handleAddToCart = () => {
         if (!product) return;
 
+        // Validate size selection
+        if (!selectedSize) {
+            alert('Please select a size');
+            return;
+        }
+
+        // Get the selected size variant
+        const sizeVariant = product.sizes.find(s => s.size === selectedSize);
+        if (!sizeVariant) {
+            alert('Selected size is not available');
+            return;
+        }
+
+        // Check stock
+        if (sizeVariant.stock < quantity) {
+            alert(`Only ${sizeVariant.stock} items available in size ${selectedSize}`);
+            return;
+        }
+
         addToCart({
             _id: product._id,
             title: product.title,
-            price: product.price,
+            price: sizeVariant.price, // Use size-specific price
             image: product.images[0],
             size: selectedSize,
             color: selectedColor,
@@ -86,9 +105,6 @@ export default function ProductDetailPage({ params }) {
 
         // Reset quantity to 1 after adding to cart
         setQuantity(1);
-
-        // Optional: Show success feedback (you could add a toast notification here)
-        // For now, we'll rely on the cart count update in the header
     };
 
     if (loading) {
@@ -227,8 +243,13 @@ export default function ProductDetailPage({ params }) {
 
     if (!product) return null;
 
-    const discountPercent = product.compareAtPrice
-        ? Math.round(((product.compareAtPrice - product.price) / product.compareAtPrice) * 100)
+    // Get selected size variant for price and stock
+    const selectedSizeVariant = product.sizes?.find(s => s.size === selectedSize);
+    const currentPrice = selectedSizeVariant?.price || product.minPrice || 0;
+    const currentStock = selectedSizeVariant?.stock || 0;
+
+    const discountPercent = product.compareAtPrice && currentPrice
+        ? Math.round(((product.compareAtPrice - currentPrice) / product.compareAtPrice) * 100)
         : 0;
 
     return (
@@ -329,7 +350,7 @@ export default function ProductDetailPage({ params }) {
 
                             <div className="flex items-baseline gap-4 mb-6 flex-wrap">
                                 <span className="text-5xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-slate-500">
-                                    ₹{product.price.toLocaleString()}
+                                    ₹{currentPrice.toLocaleString()}
                                 </span>
                                 {product.compareAtPrice && (
                                     <>
@@ -337,7 +358,7 @@ export default function ProductDetailPage({ params }) {
                                             ₹{product.compareAtPrice.toLocaleString()}
                                         </span>
                                         <span className="bg-gradient-to-r from-green-500 to-green-600 text-white text-sm font-bold px-4 py-1.5 rounded-full shadow-lg">
-                                            Save ₹{(product.compareAtPrice - product.price).toLocaleString()}
+                                            Save ₹{(product.compareAtPrice - currentPrice).toLocaleString()}
                                         </span>
                                     </>
                                 )}
@@ -369,19 +390,38 @@ export default function ProductDetailPage({ params }) {
                                         <Ruler className="w-5 h-5" /> Select Size
                                     </label>
                                     <div className="flex flex-wrap gap-3">
-                                        {product.sizes.map((size) => (
+                                        {product.sizes.map((sizeVariant) => (
                                             <button
-                                                key={size}
-                                                onClick={() => setSelectedSize(size)}
-                                                className={`min-w-[3.5rem] px-5 py-3 rounded-xl text-sm font-bold transition-all duration-300 ${selectedSize === size
-                                                    ? 'bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-xl scale-110 ring-2 ring-primary ring-offset-2'
-                                                    : 'bg-secondary text-foreground hover:bg-muted hover:shadow-lg hover:scale-105 border border-border'
+                                                key={sizeVariant.size}
+                                                onClick={() => setSelectedSize(sizeVariant.size)}
+                                                disabled={sizeVariant.stock === 0}
+                                                className={`min-w-[4rem] px-4 py-3 rounded-xl text-sm font-bold transition-all duration-300 relative ${selectedSize === sizeVariant.size
+                                                        ? 'bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-xl scale-110 ring-2 ring-primary ring-offset-2'
+                                                        : sizeVariant.stock === 0
+                                                            ? 'bg-muted text-muted-foreground cursor-not-allowed opacity-50'
+                                                            : 'bg-secondary text-foreground hover:bg-muted hover:shadow-lg hover:scale-105 border border-border'
                                                     }`}
                                             >
-                                                {size}
+                                                <div className="text-center">
+                                                    <div>{sizeVariant.size}</div>
+                                                    <div className="text-xs mt-0.5">₹{sizeVariant.price}</div>
+                                                </div>
+                                                {sizeVariant.stock === 0 && (
+                                                    <div className="absolute inset-0 flex items-center justify-center">
+                                                        <div className="w-full h-0.5 bg-destructive rotate-45"></div>
+                                                    </div>
+                                                )}
                                             </button>
                                         ))}
                                     </div>
+                                    {selectedSizeVariant && (
+                                        <p className="text-sm text-muted-foreground mt-2">
+                                            {selectedSizeVariant.stock > 0
+                                                ? `${selectedSizeVariant.stock} available in size ${selectedSize}`
+                                                : 'Out of stock'
+                                            }
+                                        </p>
+                                    )}
                                 </div>
                             )}
 
@@ -442,9 +482,11 @@ export default function ProductDetailPage({ params }) {
                                     size="lg"
                                     className="w-full h-16 text-lg font-extrabold bg-gradient-to-r from-primary via-primary to-primary/80 hover:from-primary/90 hover:via-primary hover:to-primary text-primary-foreground shadow-2xl hover:shadow-primary/50 transition-all duration-300 hover:scale-105 active:scale-95 rounded-xl"
                                     onClick={handleAddToCart}
-                                    disabled={product.stock === 0}
+                                    disabled={!selectedSize || currentStock === 0}
                                 >
-                                    {product.stock === 0 ? (
+                                    {!selectedSize ? (
+                                        <><Ruler className="w-5 h-5 inline mr-2" /> Select a Size</>
+                                    ) : currentStock === 0 ? (
                                         <><Lock className="w-5 h-5 inline mr-2" /> Out of Stock</>
                                     ) : (
                                         <><ShoppingCart className="w-5 h-5 inline mr-2" /> Add to Cart - Buy Now</>
@@ -452,14 +494,14 @@ export default function ProductDetailPage({ params }) {
                                 </Button>
 
                                 {/* Stock Indicator */}
-                                {product.stock > 0 && product.stock <= 10 && (
+                                {selectedSize && currentStock > 0 && currentStock <= 10 && (
                                     <div className="flex items-center justify-center gap-2 text-sm text-destructive bg-gradient-to-r from-destructive/10 to-destructive/5 px-4 py-3 rounded-xl border border-destructive/20">
                                         <Zap className="w-4 h-4" />
-                                        <span className="font-bold">Only {product.stock} left in stock - Order now!</span>
+                                        <span className="font-bold">Only {currentStock} left in size {selectedSize} - Order now!</span>
                                     </div>
                                 )}
 
-                                {product.stock > 10 && (
+                                {selectedSize && currentStock > 10 && (
                                     <div className="flex items-center justify-center gap-2 text-sm text-green-600 bg-green-50 px-4 py-3 rounded-xl border border-green-200">
                                         <Check className="w-4 h-4" />
                                         <span className="font-bold">In Stock - Ready to Ship</span>

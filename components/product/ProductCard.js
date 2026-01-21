@@ -10,6 +10,20 @@ import ShareButton from '../ui/ShareButton';
 export default function ProductCard({ product }) {
     const { addToCart } = useCart();
 
+    // Calculate price range from size variants
+    const minPrice = product.minPrice || (product.sizes && product.sizes.length > 0
+        ? Math.min(...product.sizes.map(s => s.price))
+        : product.price || 0);
+
+    const maxPrice = product.maxPrice || (product.sizes && product.sizes.length > 0
+        ? Math.max(...product.sizes.map(s => s.price))
+        : product.price || 0);
+
+    // Calculate total stock from all sizes
+    const totalStock = product.totalStock || (product.sizes && product.sizes.length > 0
+        ? product.sizes.reduce((sum, s) => sum + (s.stock || 0), 0)
+        : product.stock || 0);
+
     const handleQuickAdd = (e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -25,8 +39,8 @@ export default function ProductCard({ product }) {
         });
     };
 
-    const discountPercent = product.compareAtPrice
-        ? Math.round(((product.compareAtPrice - product.price) / product.compareAtPrice) * 100)
+    const discountPercent = product.compareAtPrice && minPrice
+        ? Math.round(((product.compareAtPrice - minPrice) / product.compareAtPrice) * 100)
         : 0;
 
     return (
@@ -48,7 +62,7 @@ export default function ProductCard({ product }) {
                         </div>
                     )}
 
-                    {product.stock === 0 && (
+                    {totalStock === 0 && (
                         <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                             <span className="text-white font-semibold">Out of Stock</span>
                         </div>
@@ -69,7 +83,10 @@ export default function ProductCard({ product }) {
 
                     <div className="flex items-center gap-2">
                         <span className="font-bold text-primary">
-                            ₹{product.price.toLocaleString()}
+                            {minPrice === maxPrice
+                                ? `₹${minPrice.toLocaleString()}`
+                                : `₹${minPrice.toLocaleString()} - ₹${maxPrice.toLocaleString()}`
+                            }
                         </span>
                         {product.compareAtPrice && (
                             <span className="text-sm text-muted-foreground line-through">
@@ -78,16 +95,11 @@ export default function ProductCard({ product }) {
                         )}
                     </div>
 
-                    {/* Quick Add Button */}
-                    {product.stock > 0 && (
-                        <Button
-                            size="sm"
-                            variant="outline"
-                            className="w-full mt-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                            onClick={handleQuickAdd}
-                        >
-                            Quick Add
-                        </Button>
+                    {/* Size availability hint */}
+                    {product.sizes && product.sizes.length > 0 && (
+                        <p className="text-xs text-muted-foreground">
+                            {product.sizes.map(s => s.size).join(', ')} available
+                        </p>
                     )}
                 </div>
             </div>

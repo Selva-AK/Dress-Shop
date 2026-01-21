@@ -21,33 +21,37 @@ const ProductSchema = new mongoose.Schema(
             unique: true,
             lowercase: true,
         },
-        price: {
-            type: Number,
-            required: [true, 'Please provide a price'],
-            min: 0,
-        },
+        // Size variants with individual pricing and stock
+        sizes: [
+            {
+                size: {
+                    type: String,
+                    required: true,
+                    enum: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
+                },
+                price: {
+                    type: Number,
+                    required: true,
+                    min: 0,
+                },
+                stock: {
+                    type: Number,
+                    required: true,
+                    min: 0,
+                    default: 0,
+                },
+            },
+        ],
         compareAtPrice: {
             type: Number,
             min: 0,
         },
-        sizes: [
-            {
-                type: String,
-                enum: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
-            },
-        ],
         colors: [
             {
                 name: String,
                 hex: String,
             },
         ],
-        stock: {
-            type: Number,
-            required: true,
-            min: 0,
-            default: 0,
-        },
         images: [
             {
                 type: String, // Vercel Blob URLs
@@ -69,6 +73,26 @@ const ProductSchema = new mongoose.Schema(
         timestamps: true,
     }
 );
+
+// Virtual properties for price range
+ProductSchema.virtual('minPrice').get(function () {
+    if (!this.sizes || this.sizes.length === 0) return 0;
+    return Math.min(...this.sizes.map(s => s.price));
+});
+
+ProductSchema.virtual('maxPrice').get(function () {
+    if (!this.sizes || this.sizes.length === 0) return 0;
+    return Math.max(...this.sizes.map(s => s.price));
+});
+
+ProductSchema.virtual('totalStock').get(function () {
+    if (!this.sizes || this.sizes.length === 0) return 0;
+    return this.sizes.reduce((total, s) => total + s.stock, 0);
+});
+
+// Ensure virtuals are included in JSON
+ProductSchema.set('toJSON', { virtuals: true });
+ProductSchema.set('toObject', { virtuals: true });
 
 // Indexes
 // Removed duplicate index for slug (defined by unique: true)

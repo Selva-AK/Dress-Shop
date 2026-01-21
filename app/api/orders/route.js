@@ -78,13 +78,31 @@ export async function POST(request) {
                 console.error(`Product not found: ${item.title} (${item._id})`);
                 return NextResponse.json(
                     { error: `Product ${item.title} no longer available` },
-                    { status: 400 } // Use 400 for bad reference, distinct from 404 (endpoint not found)
+                    { status: 400 }
                 );
             }
 
-            if (product.stock < item.quantity) {
+            // Validate size selection
+            if (!item.size) {
                 return NextResponse.json(
-                    { error: `Insufficient stock for ${product.title}` },
+                    { error: `Size is required for ${product.title}` },
+                    { status: 400 }
+                );
+            }
+
+            // Find the selected size variant
+            const sizeVariant = product.sizes.find(s => s.size === item.size);
+            if (!sizeVariant) {
+                return NextResponse.json(
+                    { error: `Size ${item.size} is not available for ${product.title}` },
+                    { status: 400 }
+                );
+            }
+
+            // Check size-specific stock
+            if (sizeVariant.stock < item.quantity) {
+                return NextResponse.json(
+                    { error: `Insufficient stock for ${product.title} in size ${item.size}. Available: ${sizeVariant.stock}` },
                     { status: 400 }
                 );
             }
@@ -96,13 +114,13 @@ export async function POST(request) {
                 quantity: item.quantity,
                 size: item.size,
                 color: item.color,
-                price: product.price,
+                price: sizeVariant.price, // Use size-specific price
             });
 
-            totalAmount += product.price * item.quantity;
+            totalAmount += sizeVariant.price * item.quantity;
 
-            // Reduce stock
-            product.stock -= item.quantity;
+            // Reduce stock from the specific size variant
+            sizeVariant.stock -= item.quantity;
             await product.save();
         }
 
