@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useCart } from '../providers/CartProvider';
@@ -9,6 +10,7 @@ import ShareButton from '../ui/ShareButton';
 
 export default function ProductCard({ product }) {
     const { addToCart } = useCart();
+    const [selectedSize, setSelectedSize] = useState('');
 
     // Calculate price range from size variants
     const minPrice = product.minPrice || (product.sizes && product.sizes.length > 0
@@ -28,15 +30,35 @@ export default function ProductCard({ product }) {
         e.preventDefault();
         e.stopPropagation();
 
+        if (!selectedSize) {
+            alert('Please select a size');
+            return;
+        }
+
+        // Find the selected size variant
+        const sizeVariant = product.sizes.find(s => s.size === selectedSize);
+        if (!sizeVariant) {
+            alert('Selected size not available');
+            return;
+        }
+
+        if (sizeVariant.stock < 1) {
+            alert(`Size ${selectedSize} is out of stock`);
+            return;
+        }
+
         addToCart({
             _id: product._id,
             title: product.title,
-            price: product.price,
+            price: sizeVariant.price, // Use size-specific price
             image: product.images[0],
-            size: product.sizes[0] || 'M',
+            size: selectedSize,
             color: product.colors[0]?.name || 'Default',
             quantity: 1,
         });
+
+        // Reset selection after adding
+        setSelectedSize('');
     };
 
     const discountPercent = product.compareAtPrice && minPrice
@@ -100,6 +122,66 @@ export default function ProductCard({ product }) {
                         <p className="text-xs text-muted-foreground">
                             {product.sizes.map(s => s.size).join(', ')} available
                         </p>
+                    )}
+
+                    {/* Quick Size Selector & Add to Cart */}
+                    {totalStock > 0 && (
+                        <div className="mt-3 space-y-2 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.preventDefault()}>
+                            {/* Size Buttons */}
+                            <div className="flex flex-wrap gap-1.5">
+                                {product.sizes.map((sizeVariant) => (
+                                    <button
+                                        key={sizeVariant.size}
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            setSelectedSize(sizeVariant.size);
+                                        }}
+                                        disabled={sizeVariant.stock === 0}
+                                        className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${selectedSize === sizeVariant.size
+                                            ? 'bg-primary text-primary-foreground ring-2 ring-primary ring-offset-1'
+                                            : sizeVariant.stock === 0
+                                                ? 'bg-muted text-muted-foreground cursor-not-allowed opacity-50'
+                                                : 'bg-secondary text-foreground hover:bg-muted border border-border'
+                                            }`}
+                                    >
+                                        {sizeVariant.size}
+                                    </button>
+                                ))}
+                            </div>
+
+                            {/* Add to Cart Button */}
+                            <Button
+                                size="sm"
+                                className="w-full bg-gradient-to-r from-primary via-primary to-primary/90 hover:from-primary/90 hover:via-primary hover:to-primary text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] active:scale-95 font-bold"
+                                onClick={handleQuickAdd}
+                                disabled={!selectedSize}
+                            >
+                                {selectedSize ? (
+                                    <span className="flex items-center justify-center gap-2">
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <circle cx="9" cy="21" r="1" />
+                                            <circle cx="20" cy="21" r="1" />
+                                            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+                                        </svg>
+                                        Add to Cart - ₹{product.sizes.find(s => s.size === selectedSize)?.price.toLocaleString()}
+                                    </span>
+                                ) : (
+                                    'Select Size First'
+                                )}
+                            </Button>
+                        </div>
+                    )}
+
+                    {totalStock === 0 && (
+                        <Button
+                            size="sm"
+                            variant="outline"
+                            className="w-full mt-3 opacity-0 group-hover:opacity-100 transition-opacity cursor-not-allowed"
+                            disabled
+                        >
+                            Out of Stock
+                        </Button>
                     )}
                 </div>
             </div>
