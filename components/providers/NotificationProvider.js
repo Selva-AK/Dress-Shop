@@ -57,7 +57,8 @@ export function NotificationProvider({ children }) {
         return () => clearInterval(interval);
     }, [user, cart, wishlist]);
 
-    // Order Status Polling
+    // Order Status Polling (Legacy: Replaced by Web Push)
+    /* 
     useEffect(() => {
         // Only poll for regular customers, not admins
         // Admins see all orders in API, we don't want them getting "Your order shipped" notifications for customers
@@ -111,7 +112,8 @@ export function NotificationProvider({ children }) {
             clearInterval(interval);
             clearTimeout(initialTimer);
         };
-    }, [user]);
+    }, [user]); 
+    */
 
     // Update last activity on user interaction
     useEffect(() => {
