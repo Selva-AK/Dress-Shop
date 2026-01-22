@@ -12,12 +12,7 @@ import { Package, ShoppingCart, Clock, DollarSign, Store, FileText, BarChart3, H
 export default function AdminDashboard() {
     const { user, loading } = useAuth();
     const router = useRouter();
-    const [stats, setStats] = useState({
-        totalProducts: 0,
-        totalOrders: 0,
-        pendingOrders: 0,
-        totalRevenue: 0,
-    });
+    const [recentActivity, setRecentActivity] = useState([]);
 
     useEffect(() => {
         if (!loading && (!user || user.role !== 'admin')) {
@@ -50,6 +45,12 @@ export default function AdminDashboard() {
                 pendingOrders: pending,
                 totalRevenue: revenue,
             });
+
+            // Set top 5 recent orders as activity
+            if (ordersData.orders) {
+                setRecentActivity(ordersData.orders.slice(0, 5));
+            }
+
         } catch (error) {
             console.error('Failed to fetch stats:', error);
         }
@@ -65,60 +66,68 @@ export default function AdminDashboard() {
 
     const statCards = [
         {
-            title: 'Total Products',
-            value: stats.totalProducts,
-            icon: Package,
-            bgGradient: 'from-blue-500 to-cyan-500',
-            iconBg: 'bg-blue-50',
-            change: '+12%',
-            changeType: 'positive'
+            title: 'Total Revenue',
+            value: `₹${stats.totalRevenue.toLocaleString()}`,
+            icon: DollarSign,
+            color: 'text-emerald-600',
+            bg: 'bg-emerald-50',
+            border: 'border-emerald-100',
         },
         {
             title: 'Total Orders',
             value: stats.totalOrders,
             icon: ShoppingCart,
-            bgGradient: 'from-purple-500 to-pink-500',
-            iconBg: 'bg-purple-50',
-            change: '+8%',
-            changeType: 'positive'
+            color: 'text-blue-600',
+            bg: 'bg-blue-50',
+            border: 'border-blue-100',
+        },
+        {
+            title: 'Total Products',
+            value: stats.totalProducts,
+            icon: Package,
+            color: 'text-violet-600',
+            bg: 'bg-violet-50',
+            border: 'border-violet-100',
         },
         {
             title: 'Pending Orders',
             value: stats.pendingOrders,
             icon: Clock,
-            bgGradient: 'from-orange-500 to-amber-500',
-            iconBg: 'bg-orange-50',
-            change: '-3%',
-            changeType: 'negative'
-        },
-        {
-            title: 'Total Revenue',
-            value: `₹${stats.totalRevenue.toLocaleString()}`,
-            icon: DollarSign,
-            bgGradient: 'from-green-500 to-emerald-500',
-            iconBg: 'bg-green-50',
-            change: '+23%',
-            changeType: 'positive'
+            color: 'text-amber-600',
+            bg: 'bg-amber-50',
+            border: 'border-amber-100',
         }
     ];
 
+    const formatDate = (dateString) => {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffInSeconds = Math.floor((now - date) / 1000);
+
+        if (diffInSeconds < 60) return 'Just now';
+        if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+        if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
+        if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)}d ago`;
+        return date.toLocaleDateString();
+    };
+
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-            <div className="container mx-auto px-4 py-8">
+        <div className="min-h-screen bg-slate-50/50">
+            <div className="container mx-auto px-4 py-8 max-w-7xl">
                 {/* Header Section */}
-                <div className="mb-12">
+                <div className="mb-10">
                     <div className="flex items-center justify-between flex-wrap gap-4">
                         <div>
-                            <h1 className="text-4xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent mb-2">
-                                Admin Dashboard
+                            <h1 className="text-3xl font-bold text-slate-900 tracking-tight mb-2">
+                                Dashboard
                             </h1>
-                            <p className="text-slate-600 text-lg flex items-center gap-2">
-                                Welcome back, <span className="font-semibold text-slate-900">{user.name}</span> <Hand className="w-5 h-5" />
+                            <p className="text-slate-500 font-medium flex items-center gap-2">
+                                Welcome back, <span className="text-slate-900">{user.name}</span> <Hand className="w-5 h-5 text-amber-400 fill-amber-400" />
                             </p>
                         </div>
                         <div className="flex gap-3">
                             <Link href="/">
-                                <Button variant="outline" className="flex items-center gap-2">
+                                <Button variant="outline" className="flex items-center gap-2 bg-white border-slate-200 hover:bg-slate-50 hover:text-slate-900">
                                     <Store className="w-4 h-4" /> View Store
                                 </Button>
                             </Link>
@@ -131,137 +140,106 @@ export default function AdminDashboard() {
                     {statCards.map((stat, index) => (
                         <div
                             key={index}
-                            className="group relative bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-slate-200"
+                            className={`group relative bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border ${stat.border}`}
                         >
-                            {/* Gradient Background Decoration */}
-                            <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${stat.bgGradient} opacity-10 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500`}></div>
-
-                            <div className="relative p-6">
-                                <div className="flex items-start justify-between mb-4">
-                                    <div className={`w-14 h-14 ${stat.iconBg} rounded-xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform duration-300`}>
-                                        <stat.icon className="w-7 h-7 text-slate-700" />
+                            <div className="p-6">
+                                <div className="flex items-center justify-between mb-4">
+                                    <div className={`w-12 h-12 ${stat.bg} ${stat.color} rounded-lg flex items-center justify-center`}>
+                                        <stat.icon className="w-6 h-6" />
                                     </div>
-                                    {/* <div className={`px-3 py-1 rounded-full text-xs font-semibold ${stat.changeType === 'positive'
-                                        ? 'bg-green-100 text-green-700'
-                                        : 'bg-red-100 text-red-700'
-                                        }`}>
-                                        {stat.change}
-                                    </div> */}
                                 </div>
                                 <div>
-                                    <p className="text-sm font-medium text-slate-600 mb-1">{stat.title}</p>
-                                    <p className="text-3xl font-bold text-slate-900">{stat.value}</p>
+                                    <p className="text-sm font-semibold text-slate-500 mb-1">{stat.title}</p>
+                                    <p className="text-3xl font-extrabold text-slate-900">{stat.value}</p>
                                 </div>
                             </div>
                         </div>
                     ))}
                 </div>
 
-                {/* Quick Actions Section */}
-                <div className="mb-8">
-                    <h2 className="text-2xl font-bold text-slate-900 mb-6">Quick Actions</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {/* Product Management Card */}
-                        <div className="group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-slate-200">
-                            <div className="h-2 bg-gradient-to-r from-blue-500 to-cyan-500"></div>
-                            <div className="p-6">
-                                <div className="flex items-center gap-3 mb-4">
-                                    <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center">
-                                        <Package className="w-6 h-6 text-blue-600" />
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    {/* Quick Actions - 2 Columns */}
+                    <div className="lg:col-span-2 space-y-8">
+                        <div>
+                            <h2 className="text-xl font-bold text-slate-900 mb-5 flex items-center gap-2">
+                                <FileText className="w-5 h-5" /> Quick Actions
+                            </h2>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {/* Product Management */}
+                                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:border-blue-200 transition-colors group">
+                                    <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                        <Package className="w-6 h-6" />
                                     </div>
-                                    <h3 className="text-xl font-bold text-slate-900">Product Management</h3>
+                                    <h3 className="text-lg font-bold text-slate-900 mb-2">Products</h3>
+                                    <p className="text-slate-500 mb-6 text-sm">Manage inventory and add new items.</p>
+                                    <div className="flex gap-3">
+                                        <Link href="/admin/products" className="flex-1">
+                                            <Button variant="outline" className="w-full text-xs font-bold">View All</Button>
+                                        </Link>
+                                        <Link href="/admin/products/new" className="flex-1">
+                                            <Button className="w-full bg-slate-900 hover:bg-slate-800 text-xs font-bold">Add New</Button>
+                                        </Link>
+                                    </div>
                                 </div>
-                                <p className="text-slate-600 mb-6 leading-relaxed">
-                                    Manage your product catalog, add new items, update prices and inventory.
-                                </p>
-                                <div className="flex gap-3">
-                                    <Link href="/admin/products" className="flex-1">
-                                        <Button variant="outline" className="w-full hover:border-blue-500 hover:text-blue-600 transition-colors">
-                                            View All
-                                        </Button>
-                                    </Link>
-                                    <Link href="/admin/products/new" className="flex-1">
-                                        <Button className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 border-0">
-                                            Add New
-                                        </Button>
-                                    </Link>
-                                </div>
-                            </div>
-                        </div>
 
-                        {/* Order Management Card */}
-                        <div className="group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-slate-200">
-                            <div className="h-2 bg-gradient-to-r from-purple-500 to-pink-500"></div>
-                            <div className="p-6">
-                                <div className="flex items-center gap-3 mb-4">
-                                    <div className="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center">
-                                        <FileText className="w-6 h-6 text-purple-600" />
+                                {/* Order Management */}
+                                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:border-purple-200 transition-colors group">
+                                    <div className="w-12 h-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                        <ShoppingCart className="w-6 h-6" />
                                     </div>
-                                    <h3 className="text-xl font-bold text-slate-900">Order Management</h3>
-                                </div>
-                                <p className="text-slate-600 mb-6 leading-relaxed">
-                                    View and manage customer orders, update order status and track shipments.
-                                </p>
-                                <Link href="/admin/orders" className="block">
-                                    <Button className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 border-0">
-                                        Manage Orders
-                                    </Button>
-                                </Link>
-                            </div>
-                        </div>
-
-                        {/* Analytics Card */}
-                        <div className="group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-slate-200">
-                            <div className="h-2 bg-gradient-to-r from-orange-500 to-amber-500"></div>
-                            <div className="p-6">
-                                <div className="flex items-center gap-3 mb-4">
-                                    <div className="w-12 h-12 bg-orange-50 rounded-xl flex items-center justify-center">
-                                        <BarChart3 className="w-6 h-6 text-orange-600" />
-                                    </div>
-                                    <h3 className="text-xl font-bold text-slate-900">Quick Links</h3>
-                                </div>
-                                <div className="space-y-3">
-                                    <Link href="/" className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 transition-colors group/link">
-                                        <Store className="w-5 h-5 text-slate-600" />
-                                        <span className="text-slate-700 group-hover/link:text-slate-900 font-medium">View Store Frontend</span>
-                                    </Link>
-                                    <Link href="/admin/products" className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 transition-colors group/link">
-                                        <Package className="w-5 h-5 text-slate-600" />
-                                        <span className="text-slate-700 group-hover/link:text-slate-900 font-medium">All Products</span>
-                                    </Link>
-                                    <Link href="/admin/orders" className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 transition-colors group/link">
-                                        <FileText className="w-5 h-5 text-slate-600" />
-                                        <span className="text-slate-700 group-hover/link:text-slate-900 font-medium">All Orders</span>
+                                    <h3 className="text-lg font-bold text-slate-900 mb-2">Orders</h3>
+                                    <p className="text-slate-500 mb-6 text-sm">Track and fulfill customer orders.</p>
+                                    <Link href="/admin/orders">
+                                        <Button className="w-full bg-slate-900 hover:bg-slate-800 text-xs font-bold">Manage Orders</Button>
                                     </Link>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                {/* Recent Activity Section */}
-                <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-                    <h2 className="text-2xl font-bold text-slate-900 mb-4">Recent Activity</h2>
-                    <div className="space-y-4">
-                        <div className="flex items-center gap-4 p-4 rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors">
-                            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                                <Package className="w-5 h-5 text-blue-600" />
+                    {/* Recent Activity Feed - 1 Column */}
+                    <div>
+                        <h2 className="text-xl font-bold text-slate-900 mb-5 flex items-center gap-2">
+                            <Clock className="w-5 h-5" /> Recent Activity
+                        </h2>
+                        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                            {recentActivity.length > 0 ? (
+                                <div className="divide-y divide-slate-100">
+                                    {recentActivity.map((order) => (
+                                        <div key={order._id} className="p-4 hover:bg-slate-50 transition-colors flex items-start gap-3 group cursor-pointer" onClick={() => router.push(`/admin/orders/${order._id}`)}>
+                                            <div className="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                                                <ShoppingCart className="w-4 h-4" />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-sm font-bold text-slate-900 truncate">
+                                                    Order {order.orderNumber}
+                                                </p>
+                                                <p className="text-xs text-slate-500 mt-0.5 truncate">
+                                                    {order.userId?.name || 'Customer'} placed an order
+                                                </p>
+                                                <p className="text-xs font-medium text-slate-700 mt-1">
+                                                    ₹{order.totalAmount.toLocaleString()} • {order.items?.length || order.products?.length} items
+                                                </p>
+                                            </div>
+                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide whitespace-nowrap">
+                                                {formatDate(order.createdAt)}
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="p-8 text-center text-slate-400">
+                                    <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                                        <Clock className="w-6 h-6 text-slate-300" />
+                                    </div>
+                                    <p>No recent activity</p>
+                                </div>
+                            )}
+                            <div className="p-3 bg-slate-50 border-t border-slate-100 text-center">
+                                <Link href="/admin/orders" className="text-xs font-bold text-slate-600 hover:text-slate-900 uppercase tracking-wider">
+                                    View All Activity
+                                </Link>
                             </div>
-                            <div className="flex-1">
-                                <p className="font-semibold text-slate-900">Product Updates Available</p>
-                                <p className="text-sm text-slate-600">Check for inventory and pricing changes</p>
-                            </div>
-                            <span className="text-sm text-slate-500">Just now</span>
-                        </div>
-                        <div className="flex items-center gap-4 p-4 rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors">
-                            <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
-                                <ShoppingCart className="w-5 h-5 text-purple-600" />
-                            </div>
-                            <div className="flex-1">
-                                <p className="font-semibold text-slate-900">New Orders</p>
-                                <p className="text-sm text-slate-600">You have pending orders to process</p>
-                            </div>
-                            <span className="text-sm text-slate-500">2h ago</span>
                         </div>
                     </div>
                 </div>
