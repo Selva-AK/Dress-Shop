@@ -126,7 +126,7 @@ export default function ProductCard({ product }) {
 
                     {/* Quick Size Selector & Add to Cart */}
                     {totalStock > 0 && (
-                        <div className="mt-3 space-y-2 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.preventDefault()}>
+                        <div className="mt-3 space-y-2" onClick={(e) => e.preventDefault()}>
                             {/* Size Buttons */}
                             <div className="flex flex-wrap gap-1.5">
                                 {product.sizes.map((sizeVariant) => (
@@ -177,7 +177,7 @@ export default function ProductCard({ product }) {
                         <Button
                             size="sm"
                             variant="outline"
-                            className="w-full mt-3 opacity-0 group-hover:opacity-100 transition-opacity cursor-not-allowed"
+                            className="w-full mt-3 cursor-not-allowed"
                             disabled
                         >
                             Out of Stock
