@@ -91,6 +91,14 @@ export function WishlistProvider({ children }) {
     const addToWishlist = (product) => {
         setWishlist(prev => {
             if (prev.some(item => item._id === product._id)) return prev;
+
+            // Show notification
+            if (typeof window !== 'undefined') {
+                import('@/lib/notifications').then(({ notifyAddedToWishlist }) => {
+                    notifyAddedToWishlist(product.title);
+                });
+            }
+
             return [...prev, product];
         });
     };

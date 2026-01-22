@@ -142,6 +142,13 @@ export function CartProvider({ children }) {
 
             return [...prevCart, { ...product, quantity: product.quantity || 1 }];
         });
+
+        // Show notification
+        if (typeof window !== 'undefined') {
+            import('@/lib/notifications').then(({ notifyAddedToCart }) => {
+                notifyAddedToCart(product.title);
+            });
+        }
     };
 
     const removeFromCart = (productId, size, color) => {

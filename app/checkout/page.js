@@ -51,6 +51,13 @@ export default function CheckoutPage() {
                 throw new Error(data.error || 'Failed to place order');
             }
 
+            // Show order placed notification
+            if (typeof window !== 'undefined') {
+                import('@/lib/notifications').then(({ notifyOrderPlaced }) => {
+                    notifyOrderPlaced(data.order.orderNumber, data.order.totalAmount);
+                });
+            }
+
             clearCart();
             router.push(`/orders?success=true&orderId=${data.order._id}`);
         } catch (err) {

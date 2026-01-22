@@ -59,6 +59,15 @@ export default function OrderDetailsPage({ params }) {
             if (res.ok) {
                 const data = await res.json();
                 setOrder(data.order);
+
+                // Show notification to admin
+                if (typeof window !== 'undefined') {
+                    import('@/lib/notifications').then(({ notifyOrderStatusChange }) => {
+                        // Reusing the same notification helper but context is clear
+                        notifyOrderStatusChange(id.slice(-6).toUpperCase(), status);
+                    });
+                }
+
                 alert('Status updated successfully');
             } else {
                 alert('Failed to update status');
