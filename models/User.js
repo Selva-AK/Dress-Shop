@@ -63,6 +63,13 @@ const UserSchema = new mongoose.Schema(
                 ref: 'Product',
             }
         ],
+        pushSubscription: {
+            endpoint: String,
+            keys: {
+                p256dh: String,
+                auth: String,
+            },
+        },
     },
     {
         timestamps: true,

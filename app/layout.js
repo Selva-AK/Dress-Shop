@@ -4,6 +4,7 @@ import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { AuthProvider } from "@/components/providers/AuthProvider";
 import { CartProvider } from "@/components/providers/CartProvider";
 import { WishlistProvider } from "@/components/providers/WishlistProvider";
+import { NotificationProvider } from "@/components/providers/NotificationProvider";
 import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
 import Footer from "@/components/layout/Footer";
@@ -30,12 +31,14 @@ export default function RootLayout({ children }) {
           <AuthProvider>
             <CartProvider>
               <WishlistProvider>
-                <Header />
-                <main className="min-h-screen">
-                  {children}
-                </main>
-                <Footer />
-                <BottomNav />
+                <NotificationProvider>
+                  <Header />
+                  <main className="min-h-screen">
+                    {children}
+                  </main>
+                  <Footer />
+                  <BottomNav />
+                </NotificationProvider>
               </WishlistProvider>
             </CartProvider>
           </AuthProvider>

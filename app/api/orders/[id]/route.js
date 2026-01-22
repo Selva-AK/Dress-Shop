@@ -93,6 +93,43 @@ export async function PUT(request, { params }) {
             );
         }
 
+        // Send Push Notification
+        try {
+            const user = await User.findById(order.userId._id).select('pushSubscription');
+
+            if (user && user.pushSubscription && user.pushSubscription.endpoint) {
+                const webpush = require('web-push');
+
+                webpush.setVapidDetails(
+                    process.env.VAPID_SUBJECT || 'mailto:admin@dressshop.com',
+                    process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
+                    process.env.VAPID_PRIVATE_KEY
+                );
+
+                const statusMessages = {
+                    processing: '📦 Your order is being processed',
+                    shipped: '🚚 Your order has been shipped!',
+                    delivered: '✅ Your order has been delivered',
+                    cancelled: '❌ Your order has been cancelled',
+                };
+
+                const message = statusMessages[status] || `Order status updated to ${status}`;
+
+                const payload = JSON.stringify({
+                    title: `Order #${id.slice(-6).toUpperCase()} Update`,
+                    body: message,
+                    icon: '/logo.png', // Ensure this exists or use absolute URL
+                    url: `/orders`
+                });
+
+                await webpush.sendNotification(user.pushSubscription, payload);
+                console.log(`Push notification sent to user ${user._id}`);
+            }
+        } catch (pushError) {
+            console.error('Failed to send push notification:', pushError);
+            // Don't fail the request if push fails
+        }
+
         return NextResponse.json({
             message: 'Order status updated successfully',
             order,
