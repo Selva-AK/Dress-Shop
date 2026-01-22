@@ -126,48 +126,60 @@ export default function ProductCard({ product }) {
 
                     {/* Quick Size Selector & Add to Cart */}
                     {totalStock > 0 && (
-                        <div className="mt-3 space-y-2 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.preventDefault()}>
+                        <div className="mt-4 space-y-3" onClick={(e) => e.preventDefault()}>
                             {/* Size Buttons */}
-                            <div className="flex flex-wrap gap-1.5">
-                                {product.sizes.map((sizeVariant) => (
-                                    <button
-                                        key={sizeVariant.size}
-                                        onClick={(e) => {
-                                            e.preventDefault();
-                                            e.stopPropagation();
-                                            setSelectedSize(sizeVariant.size);
-                                        }}
-                                        disabled={sizeVariant.stock === 0}
-                                        className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${selectedSize === sizeVariant.size
-                                            ? 'bg-primary text-primary-foreground ring-2 ring-primary ring-offset-1'
-                                            : sizeVariant.stock === 0
-                                                ? 'bg-muted text-muted-foreground cursor-not-allowed opacity-50'
-                                                : 'bg-secondary text-foreground hover:bg-muted border border-border'
-                                            }`}
-                                    >
-                                        {sizeVariant.size}
-                                    </button>
-                                ))}
+                            <div>
+                                <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1.5 ml-0.5">Select Size</p>
+                                <div className="flex flex-wrap gap-2">
+                                    {product.sizes.map((sizeVariant) => (
+                                        <button
+                                            key={sizeVariant.size}
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                setSelectedSize(sizeVariant.size);
+                                            }}
+                                            disabled={sizeVariant.stock === 0}
+                                            className={`
+                                                relative h-8 w-8 flex items-center justify-center text-xs font-medium rounded-full transition-all duration-200
+                                                ${selectedSize === sizeVariant.size
+                                                    ? 'bg-slate-900 text-white shadow-md scale-110'
+                                                    : sizeVariant.stock === 0
+                                                        ? 'bg-slate-100 text-slate-300 cursor-not-allowed decoration-slate-300/50 line-through'
+                                                        : 'bg-white text-slate-700 border border-slate-200 hover:border-slate-400 hover:bg-slate-50'
+                                                }
+                                            `}
+                                        >
+                                            {sizeVariant.size}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
 
                             {/* Add to Cart Button */}
                             <Button
                                 size="sm"
-                                className="w-full bg-gradient-to-r from-primary via-primary to-primary/90 hover:from-primary/90 hover:via-primary hover:to-primary text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] active:scale-95 font-bold"
-                                onClick={handleQuickAdd}
                                 disabled={!selectedSize}
+                                onClick={handleQuickAdd}
+                                className={`
+                                    w-full h-10 rounded-xl font-medium transition-all duration-300 shadow-sm
+                                    ${selectedSize
+                                        ? 'bg-slate-900 hover:bg-slate-800 text-white shadow-slate-200 hover:shadow-lg translate-y-0 opacity-100'
+                                        : 'bg-slate-100 text-slate-400 cursor-not-allowed opacity-80'
+                                    }
+                                `}
                             >
                                 {selectedSize ? (
                                     <span className="flex items-center justify-center gap-2">
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                            <circle cx="9" cy="21" r="1" />
-                                            <circle cx="20" cy="21" r="1" />
-                                            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                                            <line x1="3" y1="6" x2="21" y2="6"></line>
+                                            <path d="M16 10a4 4 0 0 1-8 0"></path>
                                         </svg>
                                         Add to Cart - ₹{product.sizes.find(s => s.size === selectedSize)?.price.toLocaleString()}
                                     </span>
                                 ) : (
-                                    'Select Size First'
+                                    <span className="text-xs uppercase tracking-wide">Select a size to add</span>
                                 )}
                             </Button>
                         </div>
@@ -177,7 +189,7 @@ export default function ProductCard({ product }) {
                         <Button
                             size="sm"
                             variant="outline"
-                            className="w-full mt-3 opacity-0 group-hover:opacity-100 transition-opacity cursor-not-allowed"
+                            className="w-full mt-3 cursor-not-allowed"
                             disabled
                         >
                             Out of Stock
