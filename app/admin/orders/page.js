@@ -7,6 +7,11 @@ import { useAuth } from '@/components/providers/AuthProvider';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import Loader from '@/components/ui/Loader';
+import {
+    Search, LayoutGrid, List, Filter,
+    Package, Clock, Settings, Truck, CheckCircle, XCircle,
+    Eye, User, Calendar, DollarSign, AlertCircle
+} from 'lucide-react';
 
 export default function AdminOrdersPage() {
     const { user, loading } = useAuth();
@@ -46,37 +51,37 @@ export default function AdminOrdersPage() {
             case 'pending':
                 return {
                     color: 'bg-amber-100 text-amber-700 border-amber-200',
-                    icon: '⏳',
+                    icon: Clock,
                     gradient: 'from-amber-500 to-orange-500'
                 };
             case 'processing':
                 return {
                     color: 'bg-blue-100 text-blue-700 border-blue-200',
-                    icon: '⚙️',
+                    icon: Settings,
                     gradient: 'from-blue-500 to-cyan-500'
                 };
             case 'shipped':
                 return {
                     color: 'bg-purple-100 text-purple-700 border-purple-200',
-                    icon: '🚚',
+                    icon: Truck,
                     gradient: 'from-purple-500 to-pink-500'
                 };
             case 'delivered':
                 return {
                     color: 'bg-green-100 text-green-700 border-green-200',
-                    icon: '✅',
+                    icon: CheckCircle,
                     gradient: 'from-green-500 to-emerald-500'
                 };
             case 'cancelled':
                 return {
                     color: 'bg-red-100 text-red-700 border-red-200',
-                    icon: '❌',
+                    icon: XCircle,
                     gradient: 'from-red-500 to-pink-500'
                 };
             default:
                 return {
                     color: 'bg-slate-100 text-slate-700 border-slate-200',
-                    icon: '📦',
+                    icon: Package,
                     gradient: 'from-slate-500 to-slate-600'
                 };
         }
@@ -110,31 +115,31 @@ export default function AdminOrdersPage() {
                 <div className="mb-8">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                         <div>
-                            <h1 className="text-4xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent mb-2">
-                                📦 Orders Management
+                            <h1 className="text-4xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent mb-2 flex items-center gap-3">
+                                <Package className="w-10 h-10 text-slate-800" /> Orders Management
                             </h1>
                             <p className="text-slate-600">Track and manage all customer orders</p>
                         </div>
                         <div className="flex gap-3">
                             <button
                                 onClick={() => setViewMode('table')}
-                                className={`px-4 py-2 rounded-xl font-medium transition-all ${viewMode === 'table'
+                                className={`px-4 py-2 rounded-xl font-medium transition-all flex items-center gap-2 ${viewMode === 'table'
                                     ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg'
                                     : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'
                                     }`}
                             >
-                                <span className="hidden sm:inline">📋 Table</span>
-                                <span className="sm:hidden">📋</span>
+                                <List className="w-5 h-5" />
+                                <span className="hidden sm:inline">Table</span>
                             </button>
                             <button
                                 onClick={() => setViewMode('cards')}
-                                className={`px-4 py-2 rounded-xl font-medium transition-all ${viewMode === 'cards'
+                                className={`px-4 py-2 rounded-xl font-medium transition-all flex items-center gap-2 ${viewMode === 'cards'
                                     ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg'
                                     : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'
                                     }`}
                             >
-                                <span className="hidden sm:inline">🎴 Cards</span>
-                                <span className="sm:hidden">🎴</span>
+                                <LayoutGrid className="w-5 h-5" />
+                                <span className="hidden sm:inline">Cards</span>
                             </button>
                         </div>
                     </div>
@@ -143,13 +148,13 @@ export default function AdminOrdersPage() {
                 {/* Stats Cards */}
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
                     {[
-                        { status: 'all', label: 'All Orders', icon: '📊', gradient: 'from-slate-500 to-slate-600' },
-                        { status: 'pending', label: 'Pending', icon: '⏳', gradient: 'from-amber-500 to-orange-500' },
-                        { status: 'processing', label: 'Processing', icon: '⚙️', gradient: 'from-blue-500 to-cyan-500' },
-                        { status: 'shipped', label: 'Shipped', icon: '🚚', gradient: 'from-purple-500 to-pink-500' },
-                        { status: 'delivered', label: 'Delivered', icon: '✅', gradient: 'from-green-500 to-emerald-500' },
-                        { status: 'cancelled', label: 'Cancelled', icon: '❌', gradient: 'from-red-500 to-pink-500' },
-                    ].map(({ status, label, icon, gradient }) => (
+                        { status: 'all', label: 'All Orders', icon: Filter, gradient: 'from-slate-500 to-slate-600' },
+                        { status: 'pending', label: 'Pending', icon: Clock, gradient: 'from-amber-500 to-orange-500' },
+                        { status: 'processing', label: 'Processing', icon: Settings, gradient: 'from-blue-500 to-cyan-500' },
+                        { status: 'shipped', label: 'Shipped', icon: Truck, gradient: 'from-purple-500 to-pink-500' },
+                        { status: 'delivered', label: 'Delivered', icon: CheckCircle, gradient: 'from-green-500 to-emerald-500' },
+                        { status: 'cancelled', label: 'Cancelled', icon: XCircle, gradient: 'from-red-500 to-pink-500' },
+                    ].map(({ status, label, icon: Icon, gradient }) => (
                         <button
                             key={status}
                             onClick={() => setFilterStatus(status)}
@@ -159,7 +164,7 @@ export default function AdminOrdersPage() {
                                 }`}
                         >
                             <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center mb-2 mx-auto`}>
-                                <span className="text-xl">{icon}</span>
+                                <Icon className="w-6 h-6 text-white" />
                             </div>
                             <div className="text-2xl font-bold text-slate-900">{statusCounts[status]}</div>
                             <div className="text-xs text-slate-600 font-medium">{label}</div>
@@ -170,7 +175,7 @@ export default function AdminOrdersPage() {
                 {/* Search Bar */}
                 <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 mb-6">
                     <div className="relative">
-                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xl">🔍</span>
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
                         <input
                             type="text"
                             placeholder="Search by order ID, customer name or email..."
@@ -206,7 +211,7 @@ export default function AdminOrdersPage() {
                                         <tr>
                                             <td colSpan="6" className="p-12 text-center">
                                                 <div className="flex flex-col items-center gap-3">
-                                                    <span className="text-6xl">📦</span>
+                                                    <Package className="w-16 h-16 text-slate-300" />
                                                     <p className="text-slate-600 font-medium">No orders found</p>
                                                     <p className="text-slate-500 text-sm">Try adjusting your filters</p>
                                                 </div>
@@ -215,6 +220,7 @@ export default function AdminOrdersPage() {
                                     ) : (
                                         filteredOrders.map((order) => {
                                             const statusInfo = getStatusInfo(order.status);
+                                            const StatusIcon = statusInfo.icon;
                                             return (
                                                 <tr key={order._id} className="hover:bg-slate-50 transition-colors">
                                                     <td className="p-4">
@@ -245,7 +251,7 @@ export default function AdminOrdersPage() {
                                                     </td>
                                                     <td className="p-4 text-center">
                                                         <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold capitalize ${statusInfo.color} border`}>
-                                                            <span>{statusInfo.icon}</span>
+                                                            <StatusIcon className="w-3 h-3" />
                                                             {order.status}
                                                         </span>
                                                     </td>
@@ -254,10 +260,10 @@ export default function AdminOrdersPage() {
                                                             <Button
                                                                 variant="outline"
                                                                 size="sm"
-                                                                className="hover:bg-blue-50 hover:text-blue-600 hover:border-blue-500"
+                                                                className="hover:bg-blue-50 hover:text-blue-600 hover:border-blue-500 flex items-center gap-2"
                                                             >
+                                                                <Eye className="w-4 h-4" />
                                                                 <span className="hidden sm:inline">View Details</span>
-                                                                <span className="sm:hidden">👁️</span>
                                                             </Button>
                                                         </Link>
                                                     </td>
@@ -274,13 +280,14 @@ export default function AdminOrdersPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {filteredOrders.length === 0 ? (
                             <div className="col-span-full flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-slate-200">
-                                <span className="text-6xl mb-4">📦</span>
+                                <Package className="w-16 h-16 text-slate-300 mb-4" />
                                 <p className="text-slate-600 font-medium">No orders found</p>
                                 <p className="text-slate-500 text-sm">Try adjusting your filters</p>
                             </div>
                         ) : (
                             filteredOrders.map((order) => {
                                 const statusInfo = getStatusInfo(order.status);
+                                const StatusIcon = statusInfo.icon;
                                 return (
                                     <div
                                         key={order._id}
@@ -299,7 +306,7 @@ export default function AdminOrdersPage() {
                                                     </div>
                                                 </div>
                                                 <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold capitalize ${statusInfo.color} border`}>
-                                                    <span>{statusInfo.icon}</span>
+                                                    <StatusIcon className="w-3 h-3" />
                                                     {order.status}
                                                 </span>
                                             </div>
@@ -307,7 +314,7 @@ export default function AdminOrdersPage() {
                                             {/* Customer Info */}
                                             <div className="mb-4 p-3 bg-slate-50 rounded-xl">
                                                 <div className="flex items-center gap-2 mb-1">
-                                                    <span className="text-lg">👤</span>
+                                                    <User className="w-5 h-5 text-slate-400" />
                                                     <div className="font-semibold text-slate-900">
                                                         {order.userId?.name || 'Unknown User'}
                                                     </div>
@@ -320,7 +327,9 @@ export default function AdminOrdersPage() {
                                             {/* Details */}
                                             <div className="space-y-2 mb-4">
                                                 <div className="flex items-center justify-between">
-                                                    <span className="text-sm text-slate-600">📅 Date:</span>
+                                                    <span className="text-sm text-slate-600 flex items-center gap-2">
+                                                        <Calendar className="w-4 h-4" /> Date:
+                                                    </span>
                                                     <span className="text-sm font-medium text-slate-900">
                                                         {new Date(order.createdAt).toLocaleDateString('en-IN', {
                                                             day: '2-digit',
@@ -330,7 +339,9 @@ export default function AdminOrdersPage() {
                                                     </span>
                                                 </div>
                                                 <div className="flex items-center justify-between">
-                                                    <span className="text-sm text-slate-600">💰 Total:</span>
+                                                    <span className="text-sm text-slate-600 flex items-center gap-2">
+                                                        <DollarSign className="w-4 h-4" /> Total:
+                                                    </span>
                                                     <span className="text-lg font-bold text-blue-600">
                                                         ₹{order.totalAmount.toLocaleString()}
                                                     </span>
@@ -340,10 +351,10 @@ export default function AdminOrdersPage() {
                                             {/* Action Button */}
                                             <Link href={`/admin/orders/${order._id}`} className="block">
                                                 <Button
-                                                    className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 border-0"
+                                                    className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 border-0 flex items-center justify-center gap-2"
                                                     size="sm"
                                                 >
-                                                    👁️ View Details
+                                                    <Eye className="w-4 h-4" /> View Details
                                                 </Button>
                                             </Link>
                                         </div>

@@ -7,6 +7,11 @@ import { useAuth } from '@/components/providers/AuthProvider';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import Loader from '@/components/ui/Loader';
+import {
+    Clock, Settings, Truck, CheckCircle, XCircle, Package,
+    Calendar, DollarSign, User, MapPin, Phone, ShoppingBag,
+    ArrowLeft, Save
+} from 'lucide-react';
 
 export default function OrderDetailsPage({ params }) {
     const { id } = use(params);
@@ -85,42 +90,42 @@ export default function OrderDetailsPage({ params }) {
             case 'pending':
                 return {
                     color: 'bg-amber-100 text-amber-700 border-amber-300',
-                    icon: '⏳',
+                    icon: Clock,
                     gradient: 'from-amber-500 to-orange-500',
                     label: 'Pending'
                 };
             case 'processing':
                 return {
                     color: 'bg-blue-100 text-blue-700 border-blue-300',
-                    icon: '⚙️',
+                    icon: Settings,
                     gradient: 'from-blue-500 to-cyan-500',
                     label: 'Processing'
                 };
             case 'shipped':
                 return {
                     color: 'bg-purple-100 text-purple-700 border-purple-300',
-                    icon: '🚚',
+                    icon: Truck,
                     gradient: 'from-purple-500 to-pink-500',
                     label: 'Shipped'
                 };
             case 'delivered':
                 return {
                     color: 'bg-green-100 text-green-700 border-green-300',
-                    icon: '✅',
+                    icon: CheckCircle,
                     gradient: 'from-green-500 to-emerald-500',
                     label: 'Delivered'
                 };
             case 'cancelled':
                 return {
                     color: 'bg-red-100 text-red-700 border-red-300',
-                    icon: '❌',
+                    icon: XCircle,
                     gradient: 'from-red-500 to-pink-500',
                     label: 'Cancelled'
                 };
             default:
                 return {
                     color: 'bg-slate-100 text-slate-700 border-slate-300',
-                    icon: '📦',
+                    icon: Package,
                     gradient: 'from-slate-500 to-slate-600',
                     label: 'Unknown'
                 };
@@ -128,11 +133,11 @@ export default function OrderDetailsPage({ params }) {
     };
 
     const statusOptions = [
-        { value: 'pending', label: 'Pending', icon: '⏳' },
-        { value: 'processing', label: 'Processing', icon: '⚙️' },
-        { value: 'shipped', label: 'Shipped', icon: '🚚' },
-        { value: 'delivered', label: 'Delivered', icon: '✅' },
-        { value: 'cancelled', label: 'Cancelled', icon: '❌' },
+        { value: 'pending', label: 'Pending', icon: Clock },
+        { value: 'processing', label: 'Processing', icon: Settings },
+        { value: 'shipped', label: 'Shipped', icon: Truck },
+        { value: 'delivered', label: 'Delivered', icon: CheckCircle },
+        { value: 'cancelled', label: 'Cancelled', icon: XCircle },
     ];
 
     if (loading || isLoading) return <Loader.Page />;
@@ -140,6 +145,7 @@ export default function OrderDetailsPage({ params }) {
     if (!order) return null;
 
     const currentStatusInfo = getStatusInfo(order.status);
+    const CurrentStatusIcon = currentStatusInfo.icon;
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 py-8">
@@ -150,7 +156,7 @@ export default function OrderDetailsPage({ params }) {
                         href="/admin/orders"
                         className="inline-flex items-center gap-2 text-slate-600 hover:text-slate-900 font-medium mb-4 transition-colors"
                     >
-                        <span>←</span> Back to Orders
+                        <ArrowLeft className="w-4 h-4" /> Back to Orders
                     </Link>
 
                     <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
@@ -161,12 +167,12 @@ export default function OrderDetailsPage({ params }) {
                                         Order #{order._id.slice(-6).toUpperCase()}
                                     </h1>
                                     <span className={`inline-flex items-center gap-1 px-4 py-2 rounded-full text-sm font-bold capitalize ${currentStatusInfo.color} border-2`}>
-                                        <span className="text-lg">{currentStatusInfo.icon}</span>
+                                        <CurrentStatusIcon className="w-5 h-5" />
                                         {currentStatusInfo.label}
                                     </span>
                                 </div>
                                 <p className="text-slate-600 flex items-center gap-2">
-                                    <span>📅</span>
+                                    <Calendar className="w-4 h-4" />
                                     Placed on {new Date(order.createdAt).toLocaleDateString('en-IN', {
                                         day: '2-digit',
                                         month: 'long',
@@ -194,7 +200,7 @@ export default function OrderDetailsPage({ params }) {
                                     >
                                         {statusOptions.map(opt => (
                                             <option key={opt.value} value={opt.value}>
-                                                {opt.icon} {opt.label}
+                                                {opt.label}
                                             </option>
                                         ))}
                                     </select>
@@ -203,9 +209,17 @@ export default function OrderDetailsPage({ params }) {
                                     onClick={handleUpdateStatus}
                                     loading={isUpdating}
                                     disabled={status === order.status}
-                                    className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 border-0 shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 border-0 shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                                 >
-                                    {isUpdating ? '⏳ Updating...' : '💾 Update Status'}
+                                    {isUpdating ? (
+                                        <>
+                                            <Clock className="w-4 h-4 animate-spin" /> Updating...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Save className="w-4 h-4" /> Update Status
+                                        </>
+                                    )}
                                 </Button>
                             </div>
                         </div>
@@ -219,7 +233,7 @@ export default function OrderDetailsPage({ params }) {
                         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                             <div className="bg-gradient-to-r from-blue-50 to-cyan-50 px-6 py-4 border-b border-slate-200">
                                 <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-                                    <span>🛍️</span> Order Items
+                                    <ShoppingBag className="w-5 h-5" /> Order Items
                                 </h2>
                             </div>
                             <div className="divide-y divide-slate-100">
@@ -239,14 +253,14 @@ export default function OrderDetailsPage({ params }) {
                                                 </div>
                                             ) : (
                                                 <div className="w-24 h-24 rounded-xl bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center flex-shrink-0">
-                                                    <span className="text-3xl">📦</span>
+                                                    <Package className="w-8 h-8 text-slate-500" />
                                                 </div>
                                             )}
                                             <div className="flex-1 min-w-0">
                                                 <h4 className="font-bold text-slate-900 text-lg mb-2">{item.title}</h4>
                                                 <div className="flex flex-wrap gap-2 mb-3">
                                                     <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700">
-                                                        <span>📦</span> Qty: {item.quantity}
+                                                        <Package className="w-3 h-3" /> Qty: {item.quantity}
                                                     </span>
                                                     {item.size && (
                                                         <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">
@@ -279,7 +293,7 @@ export default function OrderDetailsPage({ params }) {
                             <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-6 border-t-2 border-slate-200">
                                 <div className="flex justify-between items-center">
                                     <span className="text-xl font-bold text-slate-900 flex items-center gap-2">
-                                        <span>💰</span> Total Amount
+                                        <DollarSign className="w-6 h-6" /> Total Amount
                                     </span>
                                     <span className="text-3xl font-bold text-green-600">
                                         ₹{order.totalAmount.toLocaleString()}
@@ -295,7 +309,7 @@ export default function OrderDetailsPage({ params }) {
                         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                             <div className="bg-gradient-to-r from-purple-50 to-pink-50 px-6 py-4 border-b border-slate-200">
                                 <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-                                    <span>👤</span> Customer Details
+                                    <User className="w-5 h-5" /> Customer Details
                                 </h2>
                             </div>
                             <div className="p-6 space-y-4">
@@ -318,13 +332,13 @@ export default function OrderDetailsPage({ params }) {
                         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                             <div className="bg-gradient-to-r from-orange-50 to-amber-50 px-6 py-4 border-b border-slate-200">
                                 <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-                                    <span>📍</span> Shipping Address
+                                    <MapPin className="w-5 h-5" /> Shipping Address
                                 </h2>
                             </div>
                             <div className="p-6">
                                 <div className="space-y-3">
                                     <div className="font-bold text-slate-900 text-lg flex items-center gap-2 mb-4">
-                                        <span>👤</span> {order.shippingAddress.fullName}
+                                        <User className="w-4 h-4" /> {order.shippingAddress.fullName}
                                     </div>
                                     <div className="p-4 bg-slate-50 rounded-xl space-y-2">
                                         <div className="text-slate-700 leading-relaxed">
@@ -341,7 +355,7 @@ export default function OrderDetailsPage({ params }) {
                                         </div>
                                     </div>
                                     <div className="p-4 bg-blue-50 rounded-xl flex items-center gap-2 border border-blue-200">
-                                        <span className="text-xl">📱</span>
+                                        <Phone className="w-5 h-5 text-blue-600" />
                                         <div>
                                             <div className="text-xs text-blue-600 font-medium">Contact Number</div>
                                             <div className="font-bold text-blue-900">{order.shippingAddress.phone}</div>
@@ -355,7 +369,7 @@ export default function OrderDetailsPage({ params }) {
                         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                             <div className="bg-gradient-to-r from-slate-50 to-slate-100 px-6 py-4 border-b border-slate-200">
                                 <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-                                    <span>⏱️</span> Quick Stats
+                                    <Clock className="w-5 h-5" /> Quick Stats
                                 </h2>
                             </div>
                             <div className="p-6 space-y-3">
