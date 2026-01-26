@@ -26,6 +26,7 @@ export default function AdminProductsPage() {
     const { user, loading } = useAuth();
     const router = useRouter();
     const [products, setProducts] = useState([]);
+
     const [isLoading, setIsLoading] = useState(true);
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
@@ -103,6 +104,22 @@ export default function AdminProductsPage() {
     };
 
     // Products are now filtered on the server side, no need for local filtering
+
+    const getPriceDisplay = (product) => {
+        if (product.price) return `₹${product.price.toLocaleString()}`;
+        if (product.sizes?.length) {
+            const prices = product.sizes.map(s => s.price);
+            const min = Math.min(...prices);
+            const max = Math.max(...prices);
+            return min === max ? `₹${min.toLocaleString()}` : `₹${min.toLocaleString()} - ₹${max.toLocaleString()}`;
+        }
+        return '—';
+    };
+
+    const getStock = (product) => {
+        if (typeof product.stock === 'number') return product.stock;
+        return product.sizes?.reduce((sum, s) => sum + (s.stock || 0), 0) || 0;
+    };
 
     if (loading) return <Loader.Page />;
     if (!user || user.role !== 'admin') return null;
@@ -224,16 +241,16 @@ export default function AdminProductsPage() {
                                                     </span>
                                                 </td>
                                                 <td className="p-4 text-right">
-                                                    <span className="font-bold text-slate-900">₹{product.price.toLocaleString()}</span>
+                                                    <span className="font-bold text-slate-900">{getPriceDisplay(product)}</span>
                                                 </td>
                                                 <td className="p-4 text-right hidden lg:table-cell">
-                                                    <span className={`inline-flex px-3 py-1 rounded-full text-xs font-semibold ${product.stock > 10
+                                                    <span className={`inline-flex px-3 py-1 rounded-full text-xs font-semibold ${getStock(product) > 10
                                                         ? 'bg-green-100 text-green-700'
-                                                        : product.stock > 0
+                                                        : getStock(product) > 0
                                                             ? 'bg-amber-100 text-amber-700'
                                                             : 'bg-red-100 text-red-700'
                                                         }`}>
-                                                        {product.stock} in stock
+                                                        {getStock(product)} in stock
                                                     </span>
                                                 </td>
                                                 <td className="p-4">
@@ -293,13 +310,13 @@ export default function AdminProductsPage() {
                                                 <Package className="h-16 w-16 text-slate-400" />
                                             </div>
                                         )}
-                                        <div className={`absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-bold shadow-lg ${product.stock > 10
+                                        <div className={`absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-bold shadow-lg ${getStock(product) > 10
                                             ? 'bg-green-500 text-white'
-                                            : product.stock > 0
+                                            : getStock(product) > 0
                                                 ? 'bg-amber-500 text-white'
                                                 : 'bg-red-500 text-white'
                                             }`}>
-                                            {product.stock} left
+                                            {getStock(product)} left
                                         </div>
                                     </div>
                                     <div className="p-5">
@@ -311,7 +328,7 @@ export default function AdminProductsPage() {
                                                 {product.title}
                                             </h3>
                                             <p className="text-2xl font-bold text-blue-600">
-                                                ₹{product.price.toLocaleString()}
+                                                {getPriceDisplay(product)}
                                             </p>
                                         </div>
                                         <div className="flex gap-2">

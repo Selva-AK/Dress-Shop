@@ -238,7 +238,7 @@ export default function AdminOrdersPage() {
                                                         <div className="text-xs text-slate-500">{order.userId?.email}</div>
                                                     </td>
                                                     <td className="p-4 text-slate-600 hidden md:table-cell">
-                                                        {new Date(order.createdAt).toLocaleDateString('en-IN', {
+                                                        {new Date(order.createdAt || '').toLocaleDateString('en-IN', {
                                                             day: '2-digit',
                                                             month: 'short',
                                                             year: 'numeric'
@@ -246,7 +246,7 @@ export default function AdminOrdersPage() {
                                                     </td>
                                                     <td className="p-4 text-right">
                                                         <span className="font-bold text-slate-900">
-                                                            ₹{order.totalAmount.toLocaleString()}
+                                                            ₹{(order.totalAmount || 0).toLocaleString()}
                                                         </span>
                                                     </td>
                                                     <td className="p-4 text-center">
@@ -331,7 +331,7 @@ export default function AdminOrdersPage() {
                                                         <Calendar className="w-4 h-4" /> Date:
                                                     </span>
                                                     <span className="text-sm font-medium text-slate-900">
-                                                        {new Date(order.createdAt).toLocaleDateString('en-IN', {
+                                                        {new Date(order.createdAt || '').toLocaleDateString('en-IN', {
                                                             day: '2-digit',
                                                             month: 'short',
                                                             year: 'numeric'
@@ -343,7 +343,7 @@ export default function AdminOrdersPage() {
                                                         <DollarSign className="w-4 h-4" /> Total:
                                                     </span>
                                                     <span className="text-lg font-bold text-blue-600">
-                                                        ₹{order.totalAmount.toLocaleString()}
+                                                        ₹{(order.totalAmount || 0).toLocaleString()}
                                                     </span>
                                                 </div>
                                             </div>
